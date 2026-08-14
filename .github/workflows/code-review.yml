@@ -1,0 +1,64 @@
+name: ai-code-review
+
+on:
+  pull_request:
+    branches:
+      # Only review PRs whose target branch is local-dev.
+      # Add dev/staging here later if you want those branches reviewed too.
+      - local-dev
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      # Read repository metadata and the PR diff.
+      contents: read
+      # Write the overall summary comment to the PR conversation.
+      issues: write
+      # Write line-level comments to the PR file diff.
+      pull-requests: write
+
+    steps:
+      - name: Checkout PR code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "11"
+
+      - name: Download review jar
+        env:
+          REVIEW_JAR_URL: ${{ secrets.REVIEW_JAR_URL }}
+        run: |
+          test -n "$REVIEW_JAR_URL"
+          curl -fsSL "$REVIEW_JAR_URL" -o openai-code-review-company.jar
+
+      - name: Run AI code review
+        env:
+          # Common review configuration.
+          REVIEW_PLATFORM: github
+          REVIEW_TARGET_BRANCHES: local-dev
+
+          # KIE GPT-5.6 configuration. Keep the key in GitHub Secrets, not in code.
+          AI_API_HOST: ${{ secrets.AI_API_HOST }}
+          AI_API_KEY_SECRET: ${{ secrets.AI_API_KEY_SECRET }}
+          AI_MODEL: gpt-5-6-terra
+
+          # Review behavior. Start in advisory mode first; switch to true later for a hard gate.
+          REVIEW_RESPONSE_FORMAT: json_object
+          REVIEW_TEMPERATURE: "0.1"
+          REVIEW_MAX_ISSUES: "8"
+          REVIEW_PASS_MIN_SCORE: "75"
+          REVIEW_FAIL_SEVERITIES: critical,high
+          REVIEW_FAIL_ON_REJECTED: "false"
+          REVIEW_FAIL_ON_ERROR: "false"
+
+          # GitHub Actions provides these values during pull_request runs.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: java -jar openai-code-review-company.jar
