@@ -56,6 +56,8 @@ jobs:
           REVIEW_FAIL_SEVERITIES: critical,high
           REVIEW_FAIL_ON_REJECTED: "false"
           REVIEW_FAIL_ON_ERROR: "false"
+          REVIEW_RULES: ${{ vars.REVIEW_RULES }}
+          REVIEW_SYSTEM_PROMPT: ${{ vars.REVIEW_SYSTEM_PROMPT }}
 
           # GitHub Actions provides these values during pull_request runs.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
