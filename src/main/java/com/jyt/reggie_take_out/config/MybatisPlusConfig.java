@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /*
-* 配置MybatisPlus的dasd啊三代苏代大海u会对啊是丢啊哈斯u大海u电话s分页插件
+* 配置MybatisPlus的分页插件
 * */
 @Configuration
 public class MybatisPlusConfig {
